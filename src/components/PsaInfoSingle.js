@@ -8,31 +8,45 @@ import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import { ModelContext } from '../contexts/ModelContext'
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
+import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
+import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
+import CloseIcon from '@mui/icons-material/Close';
 
 
 const darkCellStyle = {backgroundColor:'#3c403d', color:'white', p:1, m:1}
 const obsCellStyle = {backgroundColor:'#295d3652', color:'white', p:1, m:1}
 const lightCellStyle = {backgroundColor:'#d0d0d0', color:'black', p:1, m:1}
 
+const dlHeadings = {h1: 'Dry', h2: 'VeryDry'}
+const obsHeadings = {h1: 'ERC', h2: 'F100'}
 
 
 function PsaInfoSingle(props){
-  console.log('single props', props)
+  // console.log('single props', props)
 	const displayInfo = props?.displayInfo
   const key = displayInfo.psaCode ? displayInfo.psaCode : 0
   const displayDate = props?.displayDate
   const cellColors = props.cellInfo?.colorObj
   const cellVals = props.cellInfo?.valueObj
-  const headings = undefined
+  const headings = {dlHeadings, obsHeadings}
+  const buttonAction = props.deleter
 
 
 	return(
 		<>
 			{displayInfo &&  
-        <TableContainer component={Paper}>
-          <Table sx={{}} size="small" aria-label="a dense table" key = {key}>
-            <TableHead>
+          <>
               <TableRow>
+                <TableCell align="center" sx={{backgroundColor:'#E35239'}}>
+                  <IconButton
+                    aria-label="expand row"
+                    size="small"
+                    onClick={() => buttonAction(key)}
+                  >
+                    {<CloseIcon />}
+                  </IconButton>
+                </TableCell>
                 <TableCell align="center" sx={darkCellStyle}>GACC</TableCell>
                 <TableCell align="center" sx={lightCellStyle}>PSA ID</TableCell>
                 <TableCell align="center" sx={darkCellStyle}>PSA Name</TableCell>
@@ -48,13 +62,14 @@ function PsaInfoSingle(props){
                 <TableCell align="center" sx={{backgroundColor:'#295d3652', color:'black'}} >Fuel Model Y Obs: {displayDate}</TableCell>
 
               </TableRow>
-            </TableHead>
-            <TableBody>
-              {
+              
                 <TableRow
                   key={1}
                   sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
                 >
+                  <TableCell align="center" sx={lightCellStyle}>
+                    
+                  </TableCell>
                   <TableCell align="center" sx={darkCellStyle}>
                     {displayInfo.GACC}
                   </TableCell>
@@ -132,10 +147,8 @@ function PsaInfoSingle(props){
                   </TableCell>
 
                 </TableRow>
-              }
-            </TableBody>
-          </Table>
-        </TableContainer>
+              
+          </>
       }
 {/*	ACC: "USNMSWC"
 climoYears: (2) [2002, 2016]

@@ -80,7 +80,28 @@ function PsaInfoArea(props){
       console.log('newAr', newAr)
       setPsaInfoArray(newAr)
     } 
+    else if(Object.keys(displayInfo).length === 0){
+      setPsaInfoArray([])
+      context.setClickInfo(undefined)
+    }
   },[displayInfo, psaStatus, allPsaCellInfo])
+
+  const alterDisplayInfoFn = (psa) =>{
+    console.log('i should be deleteing', psa)
+    const newInfo = {...displayInfo} 
+    console.log('newInfo', newInfo, displayInfo)
+    delete newInfo[psa]
+    setDisplayInfo({...newInfo})
+
+    const newPsaStatus = {...psaStatus} 
+    delete newPsaStatus[psa] 
+    setPsaStatus({...newPsaStatus})
+
+    const newAllPsaCellInfo = {...allPsaCellInfo} 
+    delete newAllPsaCellInfo[psa] 
+    setAllPsaCellInfo({...newAllPsaCellInfo})
+
+  }
 
 
 
@@ -169,9 +190,10 @@ function PsaInfoArea(props){
   //   // console.log('cellVals info chaged', cellVals)
   // },[cellVals])
 
-  // useEffect(() =>{
-  //   // console.log('cellVals info chaged', cellVals)
-  // },[context.displayDate])
+  useEffect(() =>{
+    // console.log('cellVals info chaged', cellVals)
+    console.log('context', context)
+  },[context])
 
 
 
@@ -236,8 +258,15 @@ function PsaInfoArea(props){
 		<>
 			{
         psaInfoArray.length > 0 && 
-          
-          psaInfoArray.map((curr,i)=> <><PsaInfoSingle fuuuuu={'fuuuuuuu'} displayInfo = {curr.displayInfo} index={0} cellInfo = {curr.cellInfo} />< hr /></>)
+          <TableContainer component={Paper}>
+            <Table sx={{}} size="small" aria-label="a dense table" key = {0}>
+              <TableBody>
+                {psaInfoArray.map((curr,i)=> <PsaInfoSingle fuuuuu={'fuuuuuuu'} displayInfo = {curr.displayInfo} index={0} cellInfo = {curr.cellInfo} deleter ={alterDisplayInfoFn}/>)}
+              </TableBody>  
+            </Table>
+          </TableContainer>
+
+
       }
 {/*	ACC: "USNMSWC"
 climoYears: (2) [2002, 2016]
