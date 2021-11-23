@@ -23,6 +23,7 @@ function TimeSlider(props){
 	const [hasRender, setHasRender] = useState(false)
 	const [sliderValue, setSliderValue] = useState(0)
 	const [sliderMinMax, setSliderMinMax] = useState([0,dateArray.length - 1])
+	const [forecastRequestComplete, setForecastRequestComplete] = useState(false)
 
 	useEffect(() =>{
 		setSliderMinMax([0,dateArray.length - 1])
@@ -36,7 +37,13 @@ function TimeSlider(props){
 		else{
 			setHasRender(false)
 		}
-	},[marks, dateArray, context.statusG, context.statusY, context.displayDate])
+	},[marks, dateArray, context.statusG, context.statusY, context.displayDate, context.forecastRequestStatus])
+
+	useEffect(()=>{
+		if(context.forecastRequestStatus.completed == true){	
+			setForecastRequestComplete(true)
+		}
+	},[context.forecastRequestStatus])
 
 	useEffect(()=>{
 		if(dateArray){
@@ -46,6 +53,38 @@ function TimeSlider(props){
 
 	useEffect(() =>{
 		if(context.statusG){
+			// const gaccStatusObj = context.gaccStatusObj
+			// var calcedDateArray = undefined
+			// // console.log('gaccStatusObj', gaccStatusObj)
+			// for(var gacc in gaccStatusObj){
+			// 	if(gaccStatusObj[gacc]){
+			// 		const gaccStatus = gaccStatusObj[gacc]
+			// 		for(var modelStatus in gaccStatus){
+			// 			if(gaccStatus[modelStatus]){
+			// 				const psaStatus = gaccStatus[modelStatus]
+			// 				// console.log('psaStatus', psaStatus, gaccStatus, modelStatus)
+			// 				for(var psa in psaStatus){
+			// 					var psaDateArray = []
+			// 					const psaData = psaStatus[psa]
+			// 					for(var date in psaData){
+			// 						if(date !== 'breakpoints'){
+			// 							psaDateArray.push(date)
+			// 						}
+			// 					}
+			// 					// console.log('psaDateArray', psaDateArray)
+			// 					if(psaDateArray.length >0){
+
+			// 						calcedDateArray = psaDateArray
+			// 					}
+
+			// 				}
+
+			// 			}
+			// 		}
+			// 	}
+			// }
+			// setDateArray(calcedDateArray)
+			// setMarks(makeMarks(calcedDateArray))
 			// console.log('keys', Object.keys(context.statusG))
 			const psas = Object.keys(context.statusG)
 			if(psas.length > 0){
@@ -63,7 +102,7 @@ function TimeSlider(props){
 				setMarks(makeMarks(newDateArray))
 			}
 		}
-	},[context.statusG])
+	},[context.gaccStatusObj])
 
 	const handleChange = (event, newValue) =>{
 		console.log('event', event, 'newValue', newValue, dateArray[newValue])
@@ -113,18 +152,21 @@ function TimeSlider(props){
 	return(
 		<>
 			<Box fluid sx={{pl:5, pr:5}} >
-				{ hasRender 
-					? <DumbSlider 
-			  			defaultValue={0} 
-			  			step={1} 
-			  			marks = {marks}
-			  			min={sliderMinMax[0]} 
-			  			max={sliderMinMax[1]}
-			  			handleChange={handleChange}
-			  			handleClickForward = {clickForward}
-			  			handleClickBack = {clickBack}
-			  			sliderValue = {sliderValue}
-			  		/>
+				{ forecastRequestComplete 
+					? hasRender
+					  ?
+							<DumbSlider 
+					  			defaultValue={0} 
+					  			step={1} 
+					  			marks = {marks}
+					  			min={sliderMinMax[0]} 
+					  			max={sliderMinMax[1]}
+					  			handleChange={handleChange}
+					  			handleClickForward = {clickForward}
+					  			handleClickBack = {clickBack}
+					  			sliderValue = {sliderValue}
+					  		/>
+					  : <>No Forecast Data </>		
 			  	: <>Loading...</>	
 				}
 			</Box>
@@ -135,6 +177,30 @@ function TimeSlider(props){
 }
 
 export default TimeSlider;
+
+
+	// return(
+	// 	<>
+	// 		<Box fluid sx={{pl:5, pr:5}} >
+	// 			{ hasRender 
+	// 				? <DumbSlider 
+	// 		  			defaultValue={0} 
+	// 		  			step={1} 
+	// 		  			marks = {marks}
+	// 		  			min={sliderMinMax[0]} 
+	// 		  			max={sliderMinMax[1]}
+	// 		  			handleChange={handleChange}
+	// 		  			handleClickForward = {clickForward}
+	// 		  			handleClickBack = {clickBack}
+	// 		  			sliderValue = {sliderValue}
+	// 		  		/>
+	// 		  	: <>Loading...</>	
+	// 			}
+	// 		</Box>
+
+
+	//   </>          		
+	// )
 
 				// {
 

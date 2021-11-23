@@ -278,7 +278,7 @@ function MoistureMap(props){
       // console.log('layers at bottom', olMap.getLayers())
     }
   },[context.psJson, context.statusY, context.displayDate])
-//test
+
   // useEffect(()=>{
   //   if(context){
   //     // console.log(context)

@@ -39,12 +39,12 @@ const highlightStyle = new Style({
 });
 
 let highlight;
-const displayFeatureInfo = function (pixel, vectorLayer, featureOverlay) {
-  vectorLayer.getFeatures(pixel).then(function (features) {
-    const feature = features.length ? features[0] : undefined;
+const displayFeatureInfo = function (newFeature, vectorLayer, featureOverlay) {
+  console.log('vector layer', vectorLayer)
+  // vectorLayer.getFeatures(pixel).then(function (features) {
+    const feature = newFeature.length ? newFeature[0] : undefined;
     // console.log('highlight high', highlight)
     // const info = document.getElementById('info');
-    // console.log('featureOverlay',featureOverlay,  'vectorLayer', vectorLayer, 'source', featureOverlay.getSource(), 'pixel', pixel, 'features', features)
     // if (features.length) {
     //   info.innerHTML = feature.getId() + ': ' + feature.get('name');
     // } else {
@@ -69,7 +69,7 @@ const displayFeatureInfo = function (pixel, vectorLayer, featureOverlay) {
       }
       highlight = feature;
     }
-  });
+  // });
 };
 
 const makeFeatureLayer = () =>{
@@ -85,18 +85,18 @@ const makeFeatureLayer = () =>{
 }
 
 const addPsaLayer = (layerInfo, modelStatus, displayDate) =>{
-	// console.log('layerInfo, modelStatus, displayDate', layerInfo, modelStatus, displayDate)
+  // console.log('layerInfo, modelStatus, displayDate', layerInfo, modelStatus, displayDate)
   const styleFunction = (feature) =>{
-  	var color = '#ffffff66'
-		// console.log('feature', feature.get('PSANationalCode').toLowerCase())
-		const lowerPSA = feature.get('PSANationalCode').toLowerCase()
-		const upperPSA = feature.get('PSANationalCode')
-		if(modelStatus){
-			// console.log('modelStatus', modelStatus)
-			if(modelStatus[upperPSA] && modelStatus[upperPSA][displayDate] && modelStatus[upperPSA][displayDate]['psaStatus']){
-				const vall = modelStatus[upperPSA][displayDate]['psaStatus']
-				// console.log('^^^^^^^&^&^&^&^', vall.status)
-				if(vall == 1){
+    var color = '#ffffff66'
+    // console.log('feature', feature.get('PSANationalCode').toLowerCase())
+    const lowerPSA = feature.get('PSANationalCode').toLowerCase()
+    const upperPSA = feature.get('PSANationalCode')
+    if(modelStatus){
+      // console.log('modelStatus', modelStatus)
+      if(modelStatus[upperPSA] && modelStatus[upperPSA][displayDate] && modelStatus[upperPSA][displayDate]['psaStatus']){
+        const vall = modelStatus[upperPSA][displayDate]['psaStatus']
+        // console.log('^^^^^^^&^&^&^&^', vall.status)
+        if(vall == 1){
           color = '#8bc56c'
         }
         else if(vall == 2){
@@ -106,20 +106,20 @@ const addPsaLayer = (layerInfo, modelStatus, displayDate) =>{
           color = '#e1c694'
         }
 
-			}
+      }
 
-				// console.log('feature!!!!!!!!', upperPSA ,modelStatus)
-		}
-		return new 
+        // console.log('feature!!!!!!!!', upperPSA ,modelStatus)
+    }
+    return new 
       Style
         ({
-			    stroke: new Stroke({
-			      color: 'black',
-			      width: 1
-			    }),
-			    fill: new Fill({
-		      color: color
-		      }),
+          stroke: new Stroke({
+            color: 'black',
+            width: 1
+          }),
+          fill: new Fill({
+          color: color
+          }),
           text: new Text({
             text: feature.get('PSANationalCode'),
             font: '14px Calibri,sans-serif',
@@ -131,9 +131,9 @@ const addPsaLayer = (layerInfo, modelStatus, displayDate) =>{
               width: 1.5,
             }),
           }),
-			  })
-	}
-	var boundarySource = new VectorSource({
+        })
+  }
+  var boundarySource = new VectorSource({
   features: (new GeoJSON()).readFeatures(layerInfo, {
     dataProjection : 'EPSG:4326', 
     featureProjection: 'EPSG:3857'
@@ -141,12 +141,12 @@ const addPsaLayer = (layerInfo, modelStatus, displayDate) =>{
 });
 
 var boundaryLayer = new VectorLayer({
-	  source: boundarySource,
-	  style:  styleFunction,
+    source: boundarySource,
+    style:  styleFunction,
     className: 'psas'
-	});
+  });
 
-	return boundaryLayer
+  return boundaryLayer
 }
 
 
@@ -166,7 +166,7 @@ var olMap = new Map({
 
 
 function MoistureMap(props){
-	// console.log('mapProps', props)
+  // console.log('mapProps', props)
   const mapContainer = useRef(null)
 
   const context = useContext(ModelContext)
@@ -180,18 +180,18 @@ function MoistureMap(props){
 
   useEffect(()=>{
       // console.log('clicked on the map', evt)
-      if(context.pixel){
+      if(context.clickInfo?.clickedFeatures){
 
-        const features = olMap.getFeaturesAtPixel(context.pixel)
+        // const features = olMap.getFeaturesAtPixel(context.pixel)
         const psaLayer = olMap.getLayers().array_.filter(currLyr => currLyr.className_ == 'psas')
         const featureOverlay = olMap.getLayers().array_.filter(currLyr => currLyr.className_ == 'featureClickOverlay')
         // console.log('all layers', olMap.getLayers())
-        if(features){
-          displayFeatureInfo(context.pixel, psaLayer[0], featureOverlay[0]);
+        // if(features){
+          displayFeatureInfo(context.clickInfo.clickedFeatures, psaLayer[0], featureOverlay[0]);
           // context.setFeature({pixel: evt.pixel, plaLayer: psaLayer[0], overlay: featureOverlay[0]})
           // // console.log( properties, 'features', features, psaCode, psaCodeLowerCase)
 
-        }
+        // }
       }
       // if(features){
       //   // console.log('found features!', features)
@@ -201,7 +201,7 @@ function MoistureMap(props){
       //   // console.log('names', names)
       //   context.setSelection(names && names.length>0 ? names : null)
       // }
-    },[context.pixel])
+    },[context.clickInfo])
   useEffect(() => {
     // console.log('mapRef', mapContainer)
     // console.log('mapRef', mapContainer.current)
@@ -213,18 +213,20 @@ function MoistureMap(props){
       const featureOverlay = olMap.getLayers().array_.filter(currLyr => currLyr.className_ == 'featureClickOverlay')
       // console.log('all layers', olMap.getLayers())
       if(features){
-        displayFeatureInfo(evt.pixel, psaLayer[0], featureOverlay[0]);
+        displayFeatureInfo(features, psaLayer[0], featureOverlay[0]);
         // context.setFeature({pixel: evt.pixel, plaLayer: psaLayer[0], overlay: featureOverlay[0]})
         context.setPixel(evt.pixel)
-      	const properties = features[0]['values_']
-      	const psaCode = properties.PSANationalCode
-      	const psaCodeLowerCase = psaCode.toLowerCase()
-      	// console.log( properties, 'features', features, psaCode, psaCodeLowerCase)
-      	context.setClickInfo({
-      		GACC: properties.GACCUnitID,
-      		psaName: properties.PSANAME,
-      		psaCode: psaCodeLowerCase
-      	})
+        const properties = features[0]['values_']
+        const psaCode = properties.PSANationalCode
+        const psaCodeLowerCase = psaCode.toLowerCase()
+        // console.log( properties, 'features', features, psaCode, psaCodeLowerCase)
+        context.setClickInfo({
+          GACC: properties.GACCUnitID,
+          psaName: properties.PSANAME,
+          psaCode: psaCodeLowerCase,
+          psaCodeUpper: properties.PSANationalCode,
+          clickedFeatures: features
+        })
       }
       // if(features){
       //   // console.log('found features!', features)
@@ -245,17 +247,17 @@ function MoistureMap(props){
   // },[olMap])
 
   useEffect(() =>{
-  	// console.log('psajsons', context)
-  	if(context.psaJson && context.statusG && context.displayDate){
-  		// console.log('psajson hwer', context)
-  		const vectorSource = new VectorSource({
-			  features: new GeoJSON().readFeatures(context.psaJson),
-			});
-			const vectorLayer = new VectorLayer({
-			  source: vectorSource,
-			  className: 'psas' 	
-			});
-			// console.log('here json', context)
+    // console.log('psajsons', context)
+    if(context.psaJson && context.statusG && context.displayDate && context.forecastRequestStatus.completed == true){
+      // console.log('psajson hwer', context)
+      const vectorSource = new VectorSource({
+        features: new GeoJSON().readFeatures(context.psaJson),
+      });
+      const vectorLayer = new VectorLayer({
+        source: vectorSource,
+        className: 'psas'   
+      });
+      // console.log('here json', context)
       const currLayers = olMap.getLayers()
       // console.log('currLyaers', currLayers)
       const layerArray = [...currLayers.array_]
@@ -271,19 +273,19 @@ function MoistureMap(props){
           olMap.removeLayer(currLyr)
         }
       })
-			const createLayer = addPsaLayer(context.psaJson, context.statusG, context.displayDate)
+      const createLayer = addPsaLayer(context.psaJson, context.statusG, context.displayDate)
       olMap.addLayer(createLayer)
       olMap.addLayer(makeFeatureLayer())
-			// olMap.addLayer(newFeatureLayer)
-			// console.log('layer added')
-      console.log('layers at bottom', olMap.getLayers())
-  	}
-  },[context.psJson, context.statusG, context.displayDate])
+      // olMap.addLayer(newFeatureLayer)
+      // console.log('layer added')
+      // console.log('layers at bottom', olMap.getLayers())
+    }
+  },[context.psaJson, context.statusG, context.displayDate, context.forecastRequestStatus])
 
   // useEffect(()=>{
-  // 	if(context){
-  // 		// console.log(context)
-  // 	}
+  //   if(context){
+  //     // console.log(context)
+  //   }
   // },[context])
 
   return (

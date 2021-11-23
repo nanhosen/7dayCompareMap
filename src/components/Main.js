@@ -5,7 +5,8 @@ import { ModelContext } from '../contexts/ModelContext'
 const ComparionMapG = lazy(() => import('./ComparionMapG'))
 const ComparionMapY = lazy(() => import('./ComparionMapY'))
 const TimeSlider = lazy(() => import('./TimeSlider'))
-const PsaInfoArea = lazy(() => import('./PsaInfoArea'))
+// const PsaInfoArea = lazy(() => import('./PsaInfoArea'))
+const PsaInfoArea = lazy(() => import('./PsaInfoMultiple'))
 
 
 

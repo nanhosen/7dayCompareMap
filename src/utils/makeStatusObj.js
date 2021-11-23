@@ -1,19 +1,25 @@
 import breakpoints from '../data/breakpoints'
 
-const makeStatusObj = (model, data) =>{
+const makeStatusObj = (model, data, config) =>{
 	const statusObj = {}
-	// console.log('data', data)
+	// console.log('config from input', config)
+	// console.log('data from makeStatusObj', data)
 	for(var psa in data){
 		// console.log('psa', psa, 'model', model)
 		const currData = data[psa]
+		const psaConfig = config[psa]
+		// console.log('psaConfig', psaConfig)
 		// console.log('breakpoints', breakpoints)
-		const psaBreaks = breakpoints[psa.toLowerCase()]
+		// const psaBreaks = breakpoints[psa.toLowerCase()]
+		// const psaBreaks = psaConfig.legacyBreakpoints
 		// console.log('psaBreaks', psaBreaks)
-		if(psaBreaks){
+		// if(psaBreaks){
 
-			const parameters = Object.keys(psaBreaks.originalBreakpoints)
-			const currBreakpoints = model == 'G' ? psaBreaks['originalBreakpoints'] : psaBreaks['newBreakpoints']
-			// console.log(model, 'currBreakpoints', currBreakpoints)
+		// const parameters = Object.keys(psaBreaks.originalBreakpoints)
+		const parameters = [psaConfig.parameter1, psaConfig.parameter2]
+		const currBreakpoints = model == 'G' ? psaConfig['legacyBreakpoints'] : psaConfig['newBreakpoints']
+		if(currBreakpoints){
+			
 			statusObj[psa]={breakpoints: currBreakpoints}
 			for(var date in currData){
 				// console.log('date', date)
@@ -26,35 +32,39 @@ const makeStatusObj = (model, data) =>{
 				// 	}
 				// }
 				const param1Val = dateData[params[0]]
-				const param1BreakPoint = currBreakpoints[params[0]]
+				const param1BreakPoint = currBreakpoints.parameter1
 
 				const param2Val = dateData[params[1]]
-				const param2BreakPoint = currBreakpoints[params[1]]
+				const param2BreakPoint = currBreakpoints.parameter2
 
-				const param1Category = findCategory(param1Val, param1BreakPoint, params[0])
-				const param2Category = findCategory(param2Val, param2BreakPoint, params[1])
+				const param1Category = findCategory(param1Val, param1BreakPoint, psaConfig.parameter1)
+				const param2Category = findCategory(param2Val, param2BreakPoint, psaConfig.parameter2)
 				const psaStatus = param1Category.status < param2Category.status ? param1Category.status : param2Category.status
+			// console.log('param1Category', param1Category, 'param2Category', param2Category, 'psaStatus', psaStatus)	
+			// console.log(model, 'statusObj higher', statusObj, 'param1Val', param1Val, 'param1BreakPoint', param1BreakPoint, 'dateData', dateData, 'currData', currData)
 
 				statusObj[psa][date] = {
 						[params[0]]:param1Category,
 						[params[1]]:param2Category,
 						psaStatus,
-						percentiles: psaBreaks.percentiles
+						percentiles: psaConfig.percentiles
 					}
 		}
 
-			// console.log('param1Category', param1Category, 'param2Category', param2Category, 'psaStatus', psaStatus)	
-			// console.log('statusObj', statusObj)	
-
-			// console.log(model, 'statusObj higher', statusObj, 'param1Val', param1Val, 'param1BreakPoint', param1BreakPoint, 'dateData', dateData, 'currData', currData)
+			// console.log('statusObjjjj', statusObj)	
 		}
-		// console.log('currBreakpoints', currBreakpoints, 'currData', currData)
+		else{
+			// console.log('no psa breakpoints', psa, psaConfig)
+		}
+		// console.log(model, 'currBreakpoints', currBreakpoints)
+
+		// }
 
 
 		// console.log( psa ,'y', data['16Y'][psa], 'g', data['G'][psa])
 	}
 		return statusObj
-		// console.log('statusObj', statusObj, model)
+		// console.log('statusObjjjj', statusObj, model)
 }
 
 export default makeStatusObj

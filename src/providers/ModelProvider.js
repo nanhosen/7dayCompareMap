@@ -28,6 +28,11 @@ export default function MoistureProvider({ children }) {
   const [displayDate, setDisplayDate] = useState()
   const [clickInfo, setClickInfo] = useState()
   const [pixel, setPixel] = useState()
+  const [psaInfo, setPsaInfo] = useState()
+  const [dateArray, setDateArray] = useState()
+  const [configFile, setConfigFile] = useState()
+  const [gaccStatusObj, setGaccStatusObj] = useState()
+  const [forecastRequestStatus, setForecastRequestStatus] = useState({requested:false, completed: false})
 
   const models = ['G', '16Y']
 
@@ -49,28 +54,131 @@ export default function MoistureProvider({ children }) {
   		// 	const url = `https://7daydata.s3.us-east-2.amazonaws.com/swcc-${urlModel}-jsonTest.json`
   			
   		// }
-  		const urlG = `https://7daydata.s3.us-east-2.amazonaws.com/swcc-7G-jsonTest.json`
-  		const urlY = `https://7daydata.s3.us-east-2.amazonaws.com/swcc-16Y-jsonTest.json`
-  		const fcstDat = {
-  			'16Y': await axios.get(urlY),
-  			'G': await axios.get(urlG)
-  		}
-  		const fcstAverages = {
-  			'16Y': fcstDat['16Y'].data ? makePsaAvg(fcstDat['16Y'].data) : null,
-  			'G': fcstDat['G'].data ? makePsaAvg(fcstDat['G'].data) : null,
-  		}
-  		// console.log('fcstAverages', fcstAverages)
-  		const statusObjY = makeStatusObj('16Y', fcstAverages['16Y'])
-  		const statusObjG = makeStatusObj('G', fcstAverages['G'])
-  		setStatusG(statusObjG)
-  		setStatusY(statusObjY)
+  		// const urlG = `https://7daydata.s3.us-east-2.amazonaws.com/eacc-7G-jsonTest.json`
+  		// const urlY = `https://7daydata.s3.us-east-2.amazonaws.com/eacc-16Y-jsonTest.json`
+  		// const fcstDat = {
+  		// 	'16Y': await axios.get(urlY),
+  		// 	'G': await axios.get(urlG)
+  		// }
+    //   console.log('fcstDat', fcstDat)
+  		// const fcstAverages = {
+  		// 	'16Y': fcstDat['16Y'].data ? makePsaAvg(fcstDat['16Y'].data) : null,
+  		// 	'G': fcstDat['G'].data ? makePsaAvg(fcstDat['G'].data) : null,
+  		// }
+  		// // console.log('fcstAverages', fcstAverages)
+  		// const statusObjY = makeStatusObj('16Y', fcstAverages['16Y'])
+  		// const statusObjG = makeStatusObj('G', fcstAverages['G'])
+  		// setStatusG(statusObjG)
+  		// setStatusY(statusObjY)
   		// console.log('statusObjG', statusObjG, 'statusObjY', statusObjY)
 
-  		setForecastData(fcstAverages)
+  		// setForecastData(fcstAverages)
   	}
   	getBoundaries()
 
+    
+
+    const getConfig = async() =>{
+      const configFileGet = await axios.get('https://7daydata.s3.us-east-2.amazonaws.com/GtoY/allGacConfig.json')
+      // setPsaInfo(configFile.data)
+      setConfigFile(configFileGet.data)
+      console.log('configFile', configFileGet.data)
+      if(!configFileGet.data){
+        return {error: 'config file error'}
+      }
+
+
+
+    }
+
+    getConfig()
+
   },[])
+
+  useEffect(()=>{
+    if(!configFile){
+      console.log('no conifg file not doing anythin for data')
+      return
+    }
+    const getFcstData = async()=>{
+      // console.log('in get fcst data config file', configFile)
+      if(configFile){
+
+        const gaccArray = Object.keys(configFile)
+        var gaccData = {}
+        const allPsaDataObject = {gData:{}, yData:{}}
+        var gData = {}
+        var yData = {}
+        setForecastRequestStatus({requested:true, completed: false})
+        try{
+
+          for await(const gacc of gaccArray){
+            // console.log('making forecast data')
+            const gaccForecastData = await getGaccFcstData(gacc, configFile[gacc])
+            // const origGaccData = {...gaccData}
+
+            // console.log('gaccForecastData', gacc, gaccForecastData)
+            gaccData[gacc]=gaccForecastData
+            const currGData = gaccForecastData?.statusObjG ?? {}
+            const currYData = gaccForecastData?.statusObjY ?? {}
+            allPsaDataObject.gData = {...allPsaDataObject.gData, ...currGData}
+            allPsaDataObject.yData = {...allPsaDataObject.yData, ...currYData}
+          }
+            // console.log('gaccDataFulllllll', gaccData)
+            // console.log('gaccDataFulllllll spread', {...gaccData})
+            // for(var gacc in gaccData){
+            //   const currData = gaccData[gacc]
+            //   if(currData){
+            //     const currGData = currData.statusObjG
+            //     const currYData = currData.statusObjY
+            //     allPsaDataObject.gData = {...allPsaDataObject.gData, ...currGData}
+            //     allPsaDataObject.yData = {...allPsaDataObject.yData, ...currYData}
+            //   }
+            // }
+            // console.log('whaaa t about this g', gData)
+            // console.log('setting forecast data')
+            setStatusG(allPsaDataObject.gData)
+            setStatusY(allPsaDataObject.yData)
+            // console.log('whaaa t about this y', allPsaDataObject)
+            setGaccStatusObj(gaccData)
+            setForecastRequestStatus({requested:true, success:true, completed: true})
+        }
+        catch(e){
+          setForecastRequestStatus({requested:true, success:false, completed: true, error:JSON.stringify(e)})
+          // console.log('rrequsting forecast error', e)
+        }
+
+      }
+    }
+
+   getFcstData() 
+  },[configFile])
+
+  const getGaccFcstData = async(gacc, gaccConfig) =>{
+      // console.log('gacc', gacc)
+      const urlG = `https://7daydata.s3.us-east-2.amazonaws.com/${gacc.toLowerCase()}-7G-json.json`
+      const urlY = `https://7daydata.s3.us-east-2.amazonaws.com/${gacc.toLowerCase()}-16Y-json.json`
+      try{
+        const fcstDat = {
+          '16Y': await axios.get(urlY),
+          'G': await axios.get(urlG)
+        }
+        // console.log('fcstDa!!!!!!!!!!!!!!!!!!!!!!!t', fcstDat)
+        const fcstAverages = {
+          '16Y': fcstDat['16Y'].data ? makePsaAvg(fcstDat['16Y'].data, gaccConfig) : null,
+          'G': fcstDat['G'].data ? makePsaAvg(fcstDat['G'].data, gaccConfig) : null,
+        }
+        // console.log('fcstAverages', fcstAverages)
+        const statusObjY = makeStatusObj('16Y', fcstAverages['16Y'], gaccConfig)
+        const statusObjG = makeStatusObj('G', fcstAverages['G'], gaccConfig)
+        // console.log('hiiiii', {statusObjG, statusObjY})
+        return {statusObjG, statusObjY}
+
+      }
+      catch(e){
+        console.log('error getting forecast data', gacc, e)
+    }
+  }
 
   // useEffect(()=>{
   // 	const getData = async(model) =>{
@@ -105,7 +213,7 @@ export default function MoistureProvider({ children }) {
     return () => window.removeEventListener("resize", handleResize);
   }, []); // Empty array ensures that effect is only run on mount
   return (
-    <ModelContext.Provider value={{windowHeight, psaJson, forecastData, statusG, statusY, displayDate, setDisplayDate, clickInfo, setClickInfo, swccConfig, breakpoints, pixel, setPixel}}>
+    <ModelContext.Provider value={{forecastRequestStatus, windowHeight, psaInfo, psaJson, forecastData, statusG, statusY, displayDate, setDisplayDate, clickInfo, setClickInfo, swccConfig, pixel, setPixel, configFile, gaccStatusObj}}>
           {children}
     </ModelContext.Provider>
   );
