@@ -39,9 +39,10 @@ const highlightStyle = new Style({
 });
 
 let highlight;
-const displayFeatureInfo = function (pixel, vectorLayer, featureOverlay) {
-  vectorLayer.getFeatures(pixel).then(function (features) {
-    const feature = features.length ? features[0] : undefined;
+const displayFeatureInfo = function (newFeature, vectorLayer, featureOverlay) {
+  // console.log('vector layer', vectorLayer)
+  // vectorLayer.getFeatures(pixel).then(function (features) {
+    const feature = newFeature.length ? newFeature[0] : undefined;
     // console.log('highlight high', highlight)
     // const info = document.getElementById('info');
     // if (features.length) {
@@ -68,7 +69,7 @@ const displayFeatureInfo = function (pixel, vectorLayer, featureOverlay) {
       }
       highlight = feature;
     }
-  });
+  // });
 };
 
 const makeFeatureLayer = () =>{
@@ -179,18 +180,18 @@ function MoistureMap(props){
 
   useEffect(()=>{
       // console.log('clicked on the map', evt)
-      if(context.pixel){
+      if(context.clickInfo?.clickedFeatures){
 
-        const features = olMap.getFeaturesAtPixel(context.pixel)
+        // const features = olMap.getFeaturesAtPixel(context.pixel)
         const psaLayer = olMap.getLayers().array_.filter(currLyr => currLyr.className_ == 'psas')
         const featureOverlay = olMap.getLayers().array_.filter(currLyr => currLyr.className_ == 'featureClickOverlay')
         // console.log('all layers', olMap.getLayers())
-        if(features){
-          displayFeatureInfo(context.pixel, psaLayer[0], featureOverlay[0]);
+        // if(features){
+          displayFeatureInfo(context.clickInfo.clickedFeatures, psaLayer[0], featureOverlay[0]);
           // context.setFeature({pixel: evt.pixel, plaLayer: psaLayer[0], overlay: featureOverlay[0]})
           // // console.log( properties, 'features', features, psaCode, psaCodeLowerCase)
 
-        }
+        // }
       }
       // if(features){
       //   // console.log('found features!', features)
@@ -200,7 +201,7 @@ function MoistureMap(props){
       //   // console.log('names', names)
       //   context.setSelection(names && names.length>0 ? names : null)
       // }
-    },[context.pixel])
+    },[context.clickInfo])
   useEffect(() => {
     // console.log('mapRef', mapContainer)
     // console.log('mapRef', mapContainer.current)
@@ -212,7 +213,7 @@ function MoistureMap(props){
       const featureOverlay = olMap.getLayers().array_.filter(currLyr => currLyr.className_ == 'featureClickOverlay')
       // console.log('all layers', olMap.getLayers())
       if(features){
-        displayFeatureInfo(evt.pixel, psaLayer[0], featureOverlay[0]);
+        displayFeatureInfo(features, psaLayer[0], featureOverlay[0]);
         // context.setFeature({pixel: evt.pixel, plaLayer: psaLayer[0], overlay: featureOverlay[0]})
         context.setPixel(evt.pixel)
         const properties = features[0]['values_']
@@ -222,7 +223,9 @@ function MoistureMap(props){
         context.setClickInfo({
           GACC: properties.GACCUnitID,
           psaName: properties.PSANAME,
-          psaCode: psaCodeLowerCase
+          psaCode: psaCodeLowerCase,
+          psaCodeUpper: properties.PSANationalCode,
+          clickedFeatures: features
         })
       }
       // if(features){
@@ -245,7 +248,7 @@ function MoistureMap(props){
 
   useEffect(() =>{
     // console.log('psajsons', context)
-    if(context.psaJson && context.statusY && context.displayDate){
+    if(context.psaJson && context.statusY && context.displayDate && context.forecastRequestStatus.completed == true){
       // console.log('psajson hwer', context)
       const vectorSource = new VectorSource({
         features: new GeoJSON().readFeatures(context.psaJson),
@@ -277,7 +280,7 @@ function MoistureMap(props){
       // console.log('layer added')
       // console.log('layers at bottom', olMap.getLayers())
     }
-  },[context.psJson, context.statusY, context.displayDate])
+  },[context.psaJson, context.statusY, context.displayDate, context.forecastRequestStatus])
 
   // useEffect(()=>{
   //   if(context){

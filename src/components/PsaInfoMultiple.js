@@ -49,6 +49,17 @@ const getData = (psaInfo, modelData, psaCode, displayDate) =>{
 function createData(name, calories, fat, carbs, protein) {
   return { name, calories, fat, carbs, protein };
 }
+
+
+
+function flattenGaccPsas(configFile){
+  let psaInfoObj = {}
+  for(var gacc in configFile){
+    const gaccInfo = configFile[gacc]
+    psaInfoObj = {...psaInfoObj, ...gaccInfo}
+  }
+  return psaInfoObj
+}
 function PsaInfoArea(props){
 	const model = props.model
 	const context = useContext(ModelContext)
@@ -60,16 +71,17 @@ function PsaInfoArea(props){
   const [key, setKey] = useState(0)
   const [psaInfoArray, setPsaInfoArray] = useState([])
   const prevDisplayDate = previousState(context.displayDate)
+  const [psaInfoWithoutGaccs, setPsaInfoWithoutGaccs]=useState()
 
   const dlHeadings = {h1: 'Dry', h2: 'VeryDry'}
   const obsHeadings = {h1: 'ERC', h2: 'F100'}
   const headings = {dlHeadings, obsHeadings}
 
   useEffect(() =>{
-    console.log('displayInfo', displayInfo)
-    console.log('psaStatus', psaStatus)
-    console.log('allPsaCellInfo', allPsaCellInfo)
-    console.log('truthry', Object.keys(displayInfo).length > 0 ,Object.keys(psaStatus).length > 0 , Object.keys(allPsaCellInfo).length > 0)
+    // console.log('displayInfo', displayInfo)
+    // console.log('psaStatus', psaStatus)
+    // console.log('allPsaCellInfo', allPsaCellInfo)
+    // console.log('truthry', Object.keys(displayInfo).length > 0 ,Object.keys(psaStatus).length > 0 , Object.keys(allPsaCellInfo).length > 0)
     const newAr = []
     if(Object.keys(displayInfo).length > 0 && Object.keys(psaStatus).length > 0 && Object.keys(allPsaCellInfo).length > 0){
       for(var psa in displayInfo){
@@ -77,7 +89,7 @@ function PsaInfoArea(props){
         // console.log('this is what is going in props',  psaDisplayInfo, allPsaCellInfo[psa])
         newAr.push({psa, displayInfo: psaDisplayInfo, cellInfo: allPsaCellInfo[psa]})
       }
-      console.log('newAr', newAr)
+      // console.log('newAr', newAr)
       setPsaInfoArray(newAr)
     } 
     else if(Object.keys(displayInfo).length === 0){
@@ -87,9 +99,9 @@ function PsaInfoArea(props){
   },[displayInfo, psaStatus, allPsaCellInfo])
 
   const alterDisplayInfoFn = (psa) =>{
-    console.log('i should be deleteing', psa)
+    // console.log('i should be deleteing', psa)
     const newInfo = {...displayInfo} 
-    console.log('newInfo', newInfo, displayInfo)
+    // console.log('newInfo', newInfo, displayInfo)
     delete newInfo[psa]
     setDisplayInfo({...newInfo})
 
@@ -192,7 +204,7 @@ function PsaInfoArea(props){
 
   useEffect(() =>{
     // console.log('cellVals info chaged', cellVals)
-    console.log('context', context)
+    // console.log('context', context)
   },[context])
 
 
@@ -201,16 +213,21 @@ function PsaInfoArea(props){
 
 
 	useEffect(()=>{
-    // console.log('i noticed a change', 'context.clickInfo && context[`status${model}`] && context.displayDate && context.breakpoints', context.clickInfo , context[`status${model}`] , context.displayDate , context.breakpoints)
-		if(context.clickInfo && context[`status${model}`] && context.displayDate && context.breakpoints){
+    // console.log('i noticed a change', 'context.clickInfo && context[`status${model}`] && context.displayDate && context.breakpoints', context.clickInfo , context[`status${model}`] , context.displayDate , context.configFile)
+		if(context.clickInfo && context[`status${model}`] && context.displayDate && context.configFile){
       // console.log('this is all here am i doing anything')
+      const allPsaInfo = flattenGaccPsas(context.configFile)
 			const psaCode = context.clickInfo.psaCode
 			const modelData = context[`status${model}`]?.[psaCode]
 			const displayData = getData(context.clickInfo, modelData, psaCode, context.displayDate)
 			// const currGaccConfig = context.swccConfig.swcc
-			const currPsaConfig = context.breakpoints?.[psaCode]
-      // console.log('currPsaConfig', currPsaConfig, context.breakpoints)
-      const parameters = currPsaConfig && currPsaConfig.newBreakpoints ? Object.keys(currPsaConfig.newBreakpoints) : null
+			const currPsaConfig = allPsaInfo[psaCode] 
+        ? allPsaInfo[psaCode] 
+          : allPsaInfo[psaCode.toUpperCase()]
+            ? allPsaInfo[psaCode.toUpperCase()]
+              : false
+      // console.log('currPsaConfig', currPsaConfig, allPsaInfo, psaCode)
+      const parameters = [currPsaConfig.parameter1, currPsaConfig.parameter2]
       const percentilesDecimal = currPsaConfig?.percentiles
       if(percentilesDecimal){
         // if(Math.round(currPsaConfig?.['percentiles']?.[`${parameters?.[0]}BP1`] * 100) == NaN){
@@ -218,10 +235,10 @@ function PsaInfoArea(props){
         // }
 
         const percentiles = {
-          e1p1: Math.round(currPsaConfig?.['percentiles']?.[`${parameters?.[0]}BP1`] * 100),
-          e1p2: Math.round(currPsaConfig?.['percentiles']?.[`${parameters?.[0]}BP2`] * 100),
-          e2p1: Math.round(currPsaConfig?.['percentiles']?.[`${parameters?.[1]}BP1`] * 100),
-          e2p2: Math.round(currPsaConfig?.['percentiles']?.[`${parameters?.[1]}BP2`] * 100),
+          e1p1: Math.round(currPsaConfig?.['percentiles']?.['parameter1']?.['dry'] * 100),
+          e1p2: Math.round(currPsaConfig?.['percentiles']?.['parameter1']?.['veryDry'] * 100),
+          e2p1: Math.round(currPsaConfig?.['percentiles']?.['parameter2']?.['dry'] * 100),
+          e2p2: Math.round(currPsaConfig?.['percentiles']?.['parameter2']?.['veryDry'] * 100),
         }
         currPsaConfig['percentilesWhole'] = percentiles
       }
@@ -239,7 +256,7 @@ function PsaInfoArea(props){
 
 
 		}
-	},[context.clickInfo, context[`status${model}`], context.displayDate, context.breakpoints])
+	},[context.clickInfo, context[`status${model}`], context.displayDate, context.configFile])
 
 
   // console.log('&&&&&&&&&&&&&&##################')
@@ -261,7 +278,7 @@ function PsaInfoArea(props){
           <TableContainer component={Paper}>
             <Table sx={{}} size="small" aria-label="a dense table" key = {0}>
               <TableBody>
-                {psaInfoArray.map((curr,i)=> <PsaInfoSingle fuuuuu={'fuuuuuuu'} displayInfo = {curr.displayInfo} index={0} cellInfo = {curr.cellInfo} deleter ={alterDisplayInfoFn}/>)}
+                {psaInfoArray.map((curr,i)=> <PsaInfoSingle fuuuuu={'fuuuuuuu'} key={i} displayInfo = {curr.displayInfo} index={0} cellInfo = {curr.cellInfo} deleter ={alterDisplayInfoFn}/>)}
               </TableBody>  
             </Table>
           </TableContainer>

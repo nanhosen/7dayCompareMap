@@ -23,7 +23,7 @@ const obsHeadings = {h1: 'ERC', h2: 'F100'}
 
 
 function PsaInfoSingle(props){
-  // console.log('single props', props)
+  console.log('single props', props)
 	const displayInfo = props?.displayInfo
   const key = displayInfo.psaCode ? displayInfo.psaCode : 0
   const displayDate = props?.displayDate
@@ -74,7 +74,7 @@ function PsaInfoSingle(props){
                     {displayInfo.GACC}
                   </TableCell>
                   <TableCell align="center" sx={lightCellStyle}>
-                    {displayInfo.psaCode}
+                    {displayInfo.psaCode.toUpperCase()}
                   </TableCell>
                   <TableCell align="center" sx={darkCellStyle}>
                     {displayInfo.psaName}
@@ -86,8 +86,8 @@ function PsaInfoSingle(props){
                   <TableCell align="center" sx={lightCellStyle}>
                     <InnerTable 
                       headings={headings?.dlHeadings}
-                      dry={displayInfo?.originalBreakpoints?.[displayInfo?.parameters?.[0]]?.['dry']} 
-                      veryDry={displayInfo?.originalBreakpoints?.[displayInfo?.parameters?.[0]]?.['veryDry']} />
+                      dry={displayInfo?.['legacyBreakpoints']?.['parameter1']?.['dry']} 
+                      veryDry={displayInfo?.['legacyBreakpoints']?.['parameter1']?.['veryDry']}/>
                   </TableCell>
                   <TableCell align="center" sx={darkCellStyle}>
                     <InnerTable 
@@ -100,15 +100,15 @@ function PsaInfoSingle(props){
                   <TableCell align="center" sx={lightCellStyle}>
                     <InnerTable
                     headings={headings?.dlHeadings}
-                      dry={displayInfo?.['newBreakpoints']?.[displayInfo?.parameters?.[0]]?.['dry']} 
-                      veryDry={displayInfo?.['newBreakpoints']?.[displayInfo?.parameters?.[0]]?.['veryDry']}/>
+                      dry={displayInfo?.['newBreakpoints']?.['parameter1']?.['dry']} 
+                      veryDry={displayInfo?.['newBreakpoints']?.['parameter1']?.['veryDry']}/>
                     </TableCell>
                   <TableCell align="center" sx={darkCellStyle}>
                     <InnerTable 
                       color={'white'}
                       headings={headings?.dlHeadings}
-                      dry={displayInfo?.['originalBreakpoints']?.[displayInfo?.parameters?.[1]]?.['dry']} 
-                      veryDry={displayInfo?.['originalBreakpoints']?.[displayInfo?.parameters?.[1]]?.['veryDry']} />
+                      dry={displayInfo?.['legacyBreakpoints']?.['parameter2']?.['dry']} 
+                      veryDry={displayInfo?.['legacyBreakpoints']?.['parameter2']?.['veryDry']}/>
                     </TableCell>
                   <TableCell align="center" sx={lightCellStyle}>
                     <InnerTable
@@ -121,9 +121,8 @@ function PsaInfoSingle(props){
                     <InnerTable
                       color={'white'} 
                       headings={headings?.dlHeadings}
-                      dry={displayInfo?.['newBreakpoints']?.[displayInfo?.parameters?.[1]]?.['dry']} 
-                      veryDry={displayInfo?.['newBreakpoints']?.[displayInfo?.parameters?.[1]]?.['veryDry']}
-                     />
+                      dry={displayInfo?.['newBreakpoints']?.['parameter2']?.['dry']} 
+                      veryDry={displayInfo?.['newBreakpoints']?.['parameter2']?.['veryDry']}/>
                   </TableCell>
                   <TableCell align="center" sx={obsCellStyle}> 
                     <InnerTable
@@ -147,6 +146,7 @@ function PsaInfoSingle(props){
                   </TableCell>
 
                 </TableRow>
+                <hr />
               
           </>
       }
